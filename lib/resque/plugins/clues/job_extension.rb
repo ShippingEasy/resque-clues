@@ -29,9 +29,10 @@ module Resque
             if Clues.configured? and payload['clues_metadata']
               Clues.event_publisher.publish(:perform_started, Clues.now, queue, payload['clues_metadata'], payload['class'], *payload['args'])
               @perform_started = Time.now
-              _base_perform.tap do 
+              _base_perform.tap do
                 payload['clues_metadata']['time_to_perform'] = Clues.time_delta_since(@perform_started)
-                Clues.event_publisher.publish(:perform_finished, Clues.now, queue, payload['clues_metadata'], payload['class'], *payload['args'])
+                event_type = Thread.current["perform_skipped"] ? :perform_skipped : :perform_finished
+                Clues.event_publisher.publish(event_type, Clues.now, queue, payload['clues_metadata'], payload['class'], *payload['args'])
               end
             else
               _base_perform

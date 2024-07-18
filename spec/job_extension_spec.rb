@@ -49,6 +49,12 @@ describe Resque::Plugins::Clues::JobExtension do
           metadata['time_to_perform'].nil?.should == false
         end
       end
+
+      it "should publish a perform_skipped event if perform doesn't happen" do
+        @job = Resque::Job.new(:test_queue, {"class" => SkippedTestWorker.to_s, "args" => [1,2], 'clues_metadata' => {}})
+        @job.perform
+        verify_event :perform_skipped, event_class: SkippedTestWorker.to_s
+      end
     end
 
     describe "#fail" do
